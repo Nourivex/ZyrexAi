@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Save, Sparkles, Thermometer, Cpu } from 'lucide-react';
+import { themeClasses } from '../utils/theme';
 import type { Character } from '../types';
 
 interface CharacterCreationPageProps {
@@ -77,22 +78,22 @@ export const CharacterCreationPage: React.FC<CharacterCreationPageProps> = ({
   };
 
   return (
-    <div className="h-screen flex flex-col bg-chat-bg dark:bg-chat-bg bg-light-bg overflow-hidden">
+    <div className={`h-screen flex flex-col overflow-hidden ${themeClasses.bg.primary}`}>
       {/* Header */}
-      <div className="border-b border-white/10 dark:border-white/10 border-light-border bg-chat-sidebar dark:bg-chat-sidebar bg-light-sidebar">
+      <div className={`${themeClasses.border.primary} ${themeClasses.bg.sidebar} border-b`}> 
         <div className="max-w-5xl mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
             <button
               onClick={onBack}
-              className="p-2 rounded-lg hover:bg-white/10 dark:hover:bg-white/10 hover:bg-light-hover transition-colors text-white dark:text-white text-gray-900"
+              className={`p-2 rounded-lg transition-colors ${themeClasses.button.ghost} ${themeClasses.text.primary}`}
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-white dark:text-white text-gray-900">
+              <h1 className={`text-2xl font-bold ${themeClasses.text.primary}`}>
                 Create Custom Character
               </h1>
-              <p className="text-sm text-white/60 dark:text-white/60 text-gray-600 mt-1">
+              <p className={`text-sm ${themeClasses.text.muted} mt-1`}>
                 Design your own AI personality with custom traits and behavior
               </p>
             </div>
@@ -108,18 +109,18 @@ export const CharacterCreationPage: React.FC<CharacterCreationPageProps> = ({
             <div className="lg:col-span-2 space-y-6">
               {/* Character Name */}
               <div>
-                <label className="block text-sm font-semibold text-white dark:text-white text-gray-900 mb-3">
+                <label className={`block text-sm font-semibold mb-3 ${themeClasses.text.primary}`}>
                   Character Name *
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className={`w-full px-4 py-3 rounded-xl bg-chat-input dark:bg-chat-input bg-white border ${
+                  className={`w-full px-4 py-3 rounded-xl ${themeClasses.bg.input} border ${
                     errors.name
                       ? 'border-red-500'
-                      : 'border-white/10 dark:border-white/10 border-light-border'
-                  } text-white dark:text-white text-gray-900 placeholder-white/40 dark:placeholder-white/40 placeholder-gray-400 focus:outline-none focus:border-purple-500/50 transition-colors`}
+                      : themeClasses.border.primary
+                  } ${themeClasses.text.primary} placeholder-gray-400 focus:outline-none focus:border-purple-500/50 transition-colors`}
                   placeholder="e.g., Code Reviewer, Creative Writer, Data Analyst"
                 />
                 {errors.name && (
@@ -129,7 +130,7 @@ export const CharacterCreationPage: React.FC<CharacterCreationPageProps> = ({
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-semibold text-white dark:text-white text-gray-900 mb-3">
+                <label className={`block text-sm font-semibold mb-3 ${themeClasses.text.primary}`}>
                   Description
                   <span className="ml-2 text-xs text-white/50 dark:text-white/50 text-gray-500 font-normal">
                     (Optional)
@@ -139,25 +140,25 @@ export const CharacterCreationPage: React.FC<CharacterCreationPageProps> = ({
                   type="text"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-chat-input dark:bg-chat-input bg-white border border-white/10 dark:border-white/10 border-light-border text-white dark:text-white text-gray-900 placeholder-white/40 dark:placeholder-white/40 placeholder-gray-400 focus:outline-none focus:border-purple-500/50 transition-colors"
+                  className={`w-full px-4 py-3 rounded-xl ${themeClasses.bg.input} border ${themeClasses.border.primary} ${themeClasses.text.primary} placeholder-gray-400 focus:outline-none focus:border-purple-500/50 transition-colors`}
                   placeholder="Brief description of this character's role"
                 />
               </div>
 
               {/* System Prompt */}
               <div>
-                <label className="block text-sm font-semibold text-white dark:text-white text-gray-900 mb-3">
+                <label className={`block text-sm font-semibold mb-3 ${themeClasses.text.primary}`}>
                   System Prompt *
                 </label>
                 <textarea
                   value={formData.system_prompt}
                   onChange={(e) => setFormData({ ...formData, system_prompt: e.target.value })}
                   rows={12}
-                  className={`w-full px-4 py-3 rounded-xl bg-chat-input dark:bg-chat-input bg-white border ${
+                  className={`w-full px-4 py-3 rounded-xl ${themeClasses.bg.input} border ${
                     errors.system_prompt
                       ? 'border-red-500'
-                      : 'border-white/10 dark:border-white/10 border-light-border'
-                  } text-white dark:text-white text-gray-900 placeholder-white/40 dark:placeholder-white/40 placeholder-gray-400 focus:outline-none focus:border-purple-500/50 transition-colors resize-none font-mono text-sm`}
+                      : themeClasses.border.primary
+                  } ${themeClasses.text.primary} placeholder-gray-400 focus:outline-none focus:border-purple-500/50 transition-colors resize-none font-mono text-sm`}
                   placeholder={`You are a helpful assistant specialized in...
 
 Define the character's:
@@ -169,14 +170,14 @@ Define the character's:
                 {errors.system_prompt && (
                   <p className="mt-2 text-sm text-red-400">{errors.system_prompt}</p>
                 )}
-                <p className="mt-2 text-xs text-white/50 dark:text-white/50 text-gray-500">
+                <p className={`mt-2 text-xs ${themeClasses.text.muted}`}>
                   💡 Tip: Be specific about expertise, tone, and limitations
                 </p>
               </div>
 
               {/* Temperature */}
               <div>
-                <label className="block text-sm font-semibold text-white dark:text-white text-gray-900 mb-3">
+                <label className={`block text-sm font-semibold mb-3 ${themeClasses.text.primary}`}>
                   <div className="flex items-center gap-2">
                     <Thermometer className="w-4 h-4" />
                     Temperature: {formData.temperature.toFixed(1)}
@@ -196,7 +197,7 @@ Define the character's:
                   }
                   className="w-full h-2 bg-white/10 dark:bg-white/10 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-500"
                 />
-                <div className="flex justify-between text-xs text-white/40 dark:text-white/40 text-gray-500 mt-2">
+                <div className={`flex justify-between text-xs mt-2 ${themeClasses.text.muted}`}>
                   <span>0.0 - Precise</span>
                   <span>1.0 - Balanced</span>
                   <span>2.0 - Creative</span>
@@ -205,7 +206,7 @@ Define the character's:
 
               {/* Model Preference */}
               <div>
-                <label className="block text-sm font-semibold text-white dark:text-white text-gray-900 mb-3">
+                <label className={`block text-sm font-semibold mb-3 ${themeClasses.text.primary}`}>
                   <div className="flex items-center gap-2">
                     <Cpu className="w-4 h-4" />
                     Model Preference
@@ -214,14 +215,14 @@ Define the character's:
                 <select
                   value={formData.model_preference}
                   onChange={(e) => setFormData({ ...formData, model_preference: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl bg-chat-input dark:bg-chat-input bg-white border border-white/10 dark:border-white/10 border-light-border text-white dark:text-white text-gray-900 focus:outline-none focus:border-purple-500/50 transition-colors cursor-pointer"
+                  className={`w-full px-4 py-3 rounded-xl ${themeClasses.bg.input} border ${themeClasses.border.primary} ${themeClasses.text.primary} focus:outline-none focus:border-purple-500/50 transition-colors cursor-pointer`}
                 >
                   <option value="qwen2.5-coder:14b-instruct">qwen2.5-coder:14b (Coding)</option>
                   <option value="llama3.1:8b">llama3.1:8b (Fast, General)</option>
                   <option value="llama3.1:70b">llama3.1:70b (Most Capable)</option>
                   <option value="mistral:latest">mistral:latest (Balanced)</option>
                 </select>
-                <p className="mt-2 text-xs text-white/50 dark:text-white/50 text-gray-500">
+                <p className={`mt-2 text-xs ${themeClasses.text.muted}`}>
                   Choose the AI model best suited for this character's purpose
                 </p>
               </div>
@@ -230,44 +231,38 @@ Define the character's:
             {/* Right Column - Preview Card */}
             <div className="lg:col-span-1">
               <div className="sticky top-8">
-                <div className="bg-chat-input dark:bg-chat-input bg-white border border-white/10 dark:border-white/10 border-light-border rounded-2xl p-6">
+                <div className={`${themeClasses.bg.card} rounded-2xl p-6 border ${themeClasses.border.primary}`}>
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
-                      <Sparkles className="w-6 h-6 text-white" />
+                      <Sparkles className={`w-6 h-6 ${themeClasses.text.primary}`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-white dark:text-white text-gray-900 truncate">
+                      <h3 className={`font-semibold truncate ${themeClasses.text.primary}`}>
                         {formData.name || 'Character Name'}
                       </h3>
-                      <p className="text-xs text-white/50 dark:text-white/50 text-gray-500">
-                        Custom Character
-                      </p>
+                      <p className={`${themeClasses.text.muted} text-xs`}>Custom Character</p>
                     </div>
                   </div>
 
                   <div className="space-y-3">
                     {formData.description && (
-                      <p className="text-sm text-white/70 dark:text-white/70 text-gray-700">
+                      <p className={`text-sm ${themeClasses.text.secondary}`}>
                         {formData.description}
                       </p>
                     )}
 
-                    <div className="flex items-center gap-2 text-xs">
-                      <Thermometer className="w-4 h-4 text-white/40 dark:text-white/40 text-gray-500" />
-                      <span className="text-white/60 dark:text-white/60 text-gray-600">
-                        Temp: {formData.temperature.toFixed(1)}
-                      </span>
+                    <div className={`flex items-center gap-2 text-xs ${themeClasses.text.muted}`}>
+                      <Thermometer className="w-4 h-4" />
+                      <span>Temp: {formData.temperature.toFixed(1)}</span>
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs">
-                      <Cpu className="w-4 h-4 text-white/40 dark:text-white/40 text-gray-500" />
-                      <span className="text-white/60 dark:text-white/60 text-gray-600 truncate">
-                        {formData.model_preference}
-                      </span>
+                    <div className={`flex items-center gap-2 text-xs ${themeClasses.text.muted}`}>
+                      <Cpu className="w-4 h-4" />
+                      <span className="truncate">{formData.model_preference}</span>
                     </div>
                   </div>
 
-                  <div className="mt-6 pt-6 border-t border-white/10 dark:border-white/10 border-light-border">
+                  <div className={`mt-6 pt-6 border-t ${themeClasses.border.primary}`}>
                     <button
                       type="submit"
                       disabled={loading}
@@ -291,7 +286,7 @@ Define the character's:
                 {/* Tips Card */}
                 <div className="mt-6 bg-purple-500/10 border border-purple-500/20 rounded-xl p-4">
                   <h4 className="text-sm font-semibold text-purple-400 mb-2">💡 Pro Tips</h4>
-                  <ul className="text-xs text-white/70 dark:text-white/70 text-gray-700 space-y-1">
+                  <ul className={`${themeClasses.text.secondary} text-xs space-y-1`}>
                     <li>• Start with a clear role definition</li>
                     <li>• Use lower temperature (0.3-0.5) for coding</li>
                     <li>• Use higher temperature (1.2-1.8) for creativity</li>

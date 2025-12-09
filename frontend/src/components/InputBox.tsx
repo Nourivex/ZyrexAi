@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Square, Database, Wrench, Paperclip, X, Image as ImageIcon, Mic, MicOff } from 'lucide-react';
+import { Send, Database, Wrench, Plus, X, Mic, MicOff } from 'lucide-react';
 
 interface InputBoxProps {
   onSendMessage: (message: string, images?: string[]) => void;
@@ -13,7 +13,6 @@ interface InputBoxProps {
 export const InputBox: React.FC<InputBoxProps> = ({
   onSendMessage,
   isLoading,
-  onStop,
   disabled = false,
   ragEnabled = false,
   toolsAvailable = [],
@@ -127,11 +126,19 @@ export const InputBox: React.FC<InputBoxProps> = ({
     }
   };
 
-  const handleStop = () => {
-    if (onStop) {
-      onStop();
+  const submitNow = () => {
+    if ((message.trim() || images.length > 0) && !isLoading && !disabled) {
+      onSendMessage(message, images.length > 0 ? images : undefined);
+      setMessage('');
+      setImages([]);
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.focus();
+      }
     }
   };
+
+  // onStop prop still accepted by parent; not used here because send becomes loading
 
   return (
     <div className="border-t border-light-border dark:border-white/10 bg-light-bg dark:bg-chat-bg p-4">
@@ -179,18 +186,6 @@ export const InputBox: React.FC<InputBoxProps> = ({
         )}
         
         <form onSubmit={handleSubmit} className="relative">
-          <textarea
-            ref={textareaRef}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={images.length > 0 ? "Describe what you want to know about the image..." : "Send a message..."}
-            disabled={disabled || isLoading}
-            className="w-full bg-white dark:bg-chat-input text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 rounded-lg px-4 py-3 pr-24 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-white/20 border border-gray-300 dark:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-            rows={1}
-            style={{ maxHeight: '200px' }}
-          />
-
           {/* Hidden file input */}
           <input
             ref={fileInputRef}
@@ -200,61 +195,98 @@ export const InputBox: React.FC<InputBoxProps> = ({
             onChange={handleImageSelect}
             className="hidden"
           />
-          
-          <div className="absolute right-2 bottom-2 flex items-center gap-1">
-            {/* Voice Input Button */}
-            {!isLoading && (
-              <button
-                type="button"
-                onClick={toggleVoiceInput}
-                className={`p-2 rounded-lg transition-colors ${
-                  isListening
-                    ? 'bg-red-500 hover:bg-red-600 animate-pulse'
-                    : 'bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20'
-                }`}
-                title={isListening ? 'Stop listening' : 'Voice input'}
-                disabled={disabled}
-              >
-                {isListening ? (
-                  <MicOff className="w-5 h-5 text-white" />
-                ) : (
-                  <Mic className="w-5 h-5 text-gray-700 dark:text-white" />
-                )}
-              </button>
-            )}
+          {/* Panel that groups textarea + controls */}
+          <div className="w-full bg-white dark:bg-chat-input rounded-3xl p-3">
+            {/* Textarea on top */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <textarea
+                  ref={textareaRef}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={images.length > 0 ? "Describe what you want to know about the image..." : "Send a message..."}
+                  disabled={disabled || isLoading}
+                  className="w-full bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 rounded-md px-2 py-3 resize-none focus:outline-none focus:ring-0 border-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  rows={1}
+                  style={{ maxHeight: '200px' }}
+                />
+              </div>
+            </div>
 
-            {/* Image Upload Button */}
-            {!isLoading && (
+            {/* Buttons row below the textarea: left upload/tools, right voice/send */}
+            <div className="flex items-center justify-between mt-3 px-1">
+            <div className="flex items-center gap-2">
+              {/* Upload button (Plus icon) */}
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 rounded-lg bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 transition-colors"
+                className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm transition-colors ${
+                  images.length > 0
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 text-gray-700 dark:text-white'
+                }`}
                 title="Upload image"
-                disabled={disabled}
+                disabled={disabled || isLoading}
               >
-                <Paperclip className="w-5 h-5 text-gray-700 dark:text-white" />
+                <Plus className="w-5 h-5" />
               </button>
-            )}
 
-            {isLoading ? (
+              {/* Optional tools / RAG indicators (kept compact) */}
+              {ragEnabled && (
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-blue-100 dark:bg-blue-500/10 border border-blue-300 dark:border-blue-500/30">
+                  <Database className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                  <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">RAG</span>
+                </div>
+              )}
+
+              {toolsAvailable.length > 0 && (
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-purple-100 dark:bg-purple-500/10 border border-purple-300 dark:border-purple-500/30">
+                  <Wrench className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                  <span className="text-xs text-purple-600 dark:text-purple-400 font-medium">{toolsAvailable.length}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center">
               <button
                 type="button"
-                onClick={handleStop}
-                className="p-2 rounded-lg bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 transition-colors"
-                title="Stop generating"
+                onClick={() => {
+                  if (isLoading) return;
+                  if (message.trim() === '') {
+                    toggleVoiceInput();
+                  } else {
+                    submitNow();
+                  }
+                }}
+                aria-label={message.trim() === '' ? (isListening ? 'Stop listening' : 'Voice input') : (isLoading ? 'Sending' : 'Send message')}
+                title={message.trim() === '' ? (isListening ? 'Stop listening' : 'Voice input') : (isLoading ? 'Sending' : 'Send message')}
+                disabled={disabled}
+                className={`w-12 h-12 rounded-full flex items-center justify-center shadow-sm transition-all focus:outline-none ${
+                  isLoading
+                    ? 'bg-purple-500/80 cursor-wait'
+                    : message.trim() === ''
+                    ? 'bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 text-gray-700 dark:text-white'
+                    : 'bg-purple-600 hover:bg-purple-700 text-white'
+                }`}
               >
-                <Square className="w-5 h-5 text-gray-700 dark:text-white" fill="currentColor" />
+                {isLoading ? (
+                  <svg className="w-5 h-5 animate-spin text-white" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                  </svg>
+                ) : message.trim() === '' ? (
+                  isListening ? (
+                    <MicOff className="w-5 h-5 text-white" />
+                  ) : (
+                    <Mic className="w-5 h-5" />
+                  )
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
               </button>
-            ) : (
-              <button
-                type="submit"
-                disabled={(!message.trim() && images.length === 0) || disabled}
-                className="p-2 rounded-lg bg-purple-600 dark:bg-white/10 hover:bg-purple-700 dark:hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-purple-600 dark:disabled:hover:bg-white/10"
-                title="Send message"
-              >
-                <Send className="w-5 h-5 text-white" />
-              </button>
-            )}
+            </div>
+            </div>
           </div>
         </form>
         

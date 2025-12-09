@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles } from 'lucide-react';
+
 import type { Character } from '../types';
 
 interface HeaderProps {
@@ -14,9 +14,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex h-14 items-center justify-between px-4">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
+            {/* decorative logo removed as requested */}
             <div className="hidden sm:block">
               <h1 className="text-gray-900 dark:text-white font-semibold">ZyrexAi</h1>
               {selectedCharacter && (
