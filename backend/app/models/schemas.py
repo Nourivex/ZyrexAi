@@ -15,12 +15,13 @@ class ChatMessage(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    """Chat request payload"""
+    """Chat request payload (supports multimodal with images)"""
     message: str = Field(..., description="User message")
     session_id: Optional[int] = Field(None, description="Session ID for conversation context")
-    model: Optional[str] = Field(None, description="Override default model")
+    model: Optional[str] = Field(None, description="Override default model (use llava/bakllava for vision)")
     temperature: Optional[float] = Field(0.7, ge=0.0, le=2.0)
     stream: bool = Field(False, description="Enable streaming response")
+    images: Optional[List[str]] = Field(None, description="List of base64 encoded images for vision models")
 
 
 class ChatResponse(BaseModel):

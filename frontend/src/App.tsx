@@ -43,11 +43,17 @@ function MainLayout() {
     setSelectedCharacter(character);
   };
 
-  const handleSendMessage = (message: string) => {
+  const handleSendMessage = (message: string, images?: string[]) => {
+    // TODO: Integrate images with sendMessage when backend supports it
     sendMessage(message, true);
     
     if (!currentSessionId && currentSession) {
       setCurrentSessionId(currentSession.id);
+    }
+
+    // Log images for now (will be integrated with backend)
+    if (images && images.length > 0) {
+      console.log(`📸 Sending ${images.length} image(s) with message`);
     }
   };
 

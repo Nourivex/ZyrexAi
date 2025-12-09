@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Square, Database, Wrench } from 'lucide-react';
+import { Send, Square, Database, Wrench, Paperclip, X, Image as ImageIcon, Mic, MicOff } from 'lucide-react';
 
 interface InputBoxProps {
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string, images?: string[]) => void;
   isLoading: boolean;
   onStop?: () => void;
   disabled?: boolean;
@@ -19,7 +19,38 @@ export const InputBox: React.FC<InputBoxProps> = ({
   toolsAvailable = [],
 }) => {
   const [message, setMessage] = useState('');
+  const [images, setImages] = useState<string[]>([]);
+  const [isListening, setIsListening] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
+
+  // Initialize Speech Recognition
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = true;
+      recognitionRef.current.lang = 'en-US'; // or 'id-ID' for Indonesian
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = Array.from(event.results)
+          .map((result: any) => result[0].transcript)
+          .join('');
+        setMessage(transcript);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+      };
+    }
+  }, []);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -30,11 +61,58 @@ export const InputBox: React.FC<InputBoxProps> = ({
     }
   }, [message]);
 
+  const toggleVoiceInput = () => {
+    if (!recognitionRef.current) {
+      alert('Speech recognition not supported in this browser. Try Chrome or Edge.');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
+  };
+
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const newImages: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (!file.type.startsWith('image/')) continue;
+
+      // Convert to Base64
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        newImages.push(base64);
+        if (newImages.length === files.length) {
+          setImages((prev) => [...prev, ...newImages]);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim() && !isLoading && !disabled) {
-      onSendMessage(message);
+    if ((message.trim() || images.length > 0) && !isLoading && !disabled) {
+      onSendMessage(message, images.length > 0 ? images : undefined);
       setMessage('');
+      setImages([]);
       // Reset textarea height
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
@@ -77,6 +155,28 @@ export const InputBox: React.FC<InputBoxProps> = ({
             )}
           </div>
         )}
+
+        {/* Image Previews */}
+        {images.length > 0 && (
+          <div className="flex gap-2 mb-2 px-1 overflow-x-auto">
+            {images.map((img, index) => (
+              <div key={index} className="relative group flex-shrink-0">
+                <img
+                  src={img}
+                  alt={`Upload ${index + 1}`}
+                  className="w-20 h-20 object-cover rounded-lg border-2 border-purple-500 dark:border-purple-400"
+                />
+                <button
+                  onClick={() => handleRemoveImage(index)}
+                  className="absolute -top-2 -right-2 p-1 rounded-full bg-red-500 hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="Remove image"
+                >
+                  <X className="w-3 h-3 text-white" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         
         <form onSubmit={handleSubmit} className="relative">
           <textarea
@@ -84,14 +184,58 @@ export const InputBox: React.FC<InputBoxProps> = ({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Send a message..."
+            placeholder={images.length > 0 ? "Describe what you want to know about the image..." : "Send a message..."}
             disabled={disabled || isLoading}
-            className="w-full bg-white dark:bg-chat-input text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 rounded-lg px-4 py-3 pr-12 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-white/20 border border-gray-300 dark:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-white dark:bg-chat-input text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/40 rounded-lg px-4 py-3 pr-24 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-white/20 border border-gray-300 dark:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             rows={1}
             style={{ maxHeight: '200px' }}
           />
+
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleImageSelect}
+            className="hidden"
+          />
           
-          <div className="absolute right-2 bottom-2">
+          <div className="absolute right-2 bottom-2 flex items-center gap-1">
+            {/* Voice Input Button */}
+            {!isLoading && (
+              <button
+                type="button"
+                onClick={toggleVoiceInput}
+                className={`p-2 rounded-lg transition-colors ${
+                  isListening
+                    ? 'bg-red-500 hover:bg-red-600 animate-pulse'
+                    : 'bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20'
+                }`}
+                title={isListening ? 'Stop listening' : 'Voice input'}
+                disabled={disabled}
+              >
+                {isListening ? (
+                  <MicOff className="w-5 h-5 text-white" />
+                ) : (
+                  <Mic className="w-5 h-5 text-gray-700 dark:text-white" />
+                )}
+              </button>
+            )}
+
+            {/* Image Upload Button */}
+            {!isLoading && (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2 rounded-lg bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/20 transition-colors"
+                title="Upload image"
+                disabled={disabled}
+              >
+                <Paperclip className="w-5 h-5 text-gray-700 dark:text-white" />
+              </button>
+            )}
+
             {isLoading ? (
               <button
                 type="button"
@@ -104,7 +248,7 @@ export const InputBox: React.FC<InputBoxProps> = ({
             ) : (
               <button
                 type="submit"
-                disabled={!message.trim() || disabled}
+                disabled={(!message.trim() && images.length === 0) || disabled}
                 className="p-2 rounded-lg bg-purple-600 dark:bg-white/10 hover:bg-purple-700 dark:hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-purple-600 dark:disabled:hover:bg-white/10"
                 title="Send message"
               >

@@ -2,8 +2,9 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
-import { Copy, Check, User, Bot } from 'lucide-react';
+import { Copy, Check, User, Bot, Volume2, VolumeX } from 'lucide-react';
 import type { Message } from '../types';
+import { useTextToSpeech } from '../hooks/useTextToSpeech';
 
 interface MessageBubbleProps {
   message: Message;
@@ -12,11 +13,20 @@ interface MessageBubbleProps {
 export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
   const [copied, setCopied] = React.useState(false);
   const isUser = message.role === 'user';
+  const { speak, stop, isSpeaking, isSupported } = useTextToSpeech();
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(message.content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSpeak = () => {
+    if (isSpeaking) {
+      stop();
+    } else {
+      speak(message.content);
+    }
   };
 
   return (
@@ -96,9 +106,25 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
           )}
         </div>
 
-        {/* Copy button for entire message */}
+        {/* Action buttons for assistant messages */}
         {!isUser && !message.isStreaming && (
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 flex items-center gap-1">
+            {/* Text-to-Speech Button */}
+            {isSupported && (
+              <button
+                onClick={handleSpeak}
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded hover:bg-light-hover dark:hover:bg-white/10"
+                title={isSpeaking ? 'Stop speaking' : 'Read aloud'}
+              >
+                {isSpeaking ? (
+                  <VolumeX className="w-4 h-4 text-purple-500 animate-pulse" />
+                ) : (
+                  <Volume2 className="w-4 h-4 text-gray-600 dark:text-white/70" />
+                )}
+              </button>
+            )}
+
+            {/* Copy Button */}
             <button
               onClick={handleCopy}
               className="opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded hover:bg-light-hover dark:hover:bg-white/10"

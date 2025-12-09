@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import MessageBubble from './MessageBubble';
+import { ThinkingIndicator } from './ThinkingIndicator';
 import type { Message } from '../types';
 
 interface ChatAreaProps {
@@ -8,8 +9,27 @@ interface ChatAreaProps {
   error: string | null;
 }
 
-export const ChatArea: React.FC<ChatAreaProps> = ({ messages, error }) => {
+export const ChatArea: React.FC<ChatAreaProps> = ({ messages, error, isLoading }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [thinkingSteps, setThinkingSteps] = useState<Array<{ tool_name?: string; status?: string; query?: string; timestamp: number }>>([]);
+  const [isThinking, setIsThinking] = useState(false);
+
+  // Listen for thinking events (this would be integrated with SSE stream)
+  useEffect(() => {
+    if (isLoading) {
+      // Simulate thinking detection for demo
+      // In real implementation, this comes from SSE stream
+      const timeout = setTimeout(() => {
+        setIsThinking(true);
+      }, 100);
+
+      return () => clearTimeout(timeout);
+    } else {
+      setIsThinking(false);
+      // Keep steps visible after loading completes
+      setTimeout(() => setThinkingSteps([]), 3000);
+    }
+  }, [isLoading]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -62,6 +82,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ messages, error }) => {
           {messages.map((message) => (
             <MessageBubble key={message.id} message={message} />
           ))}
+
+          {/* Thinking Indicator */}
+          {(isThinking || thinkingSteps.length > 0) && (
+            <ThinkingIndicator steps={thinkingSteps} isThinking={isThinking} />
+          )}
           
           {error && (
             <div className="w-full bg-red-500/10 border-b border-red-500/20">

@@ -216,22 +216,31 @@ class OllamaService:
     
     async def chat(
         self,
-        messages: List[Dict[str, str]],
+        messages: List[Dict[str, Any]],
         model: Optional[str] = None,
         temperature: float = 0.7,
-        stream: bool = False
+        stream: bool = False,
+        images: Optional[List[str]] = None
     ):
         """
-        Chat completion using Ollama's chat endpoint
+        Chat completion using Ollama's chat endpoint (supports multimodal with images)
         
         Args:
             messages: List of chat messages [{"role": "user", "content": "..."}]
-            model: Model to use
+            model: Model to use (for vision, use llava, bakllava, or llava-llama3)
             temperature: Sampling temperature
             stream: Enable streaming
+            images: List of base64 encoded images (for vision models)
             
         Returns:
             Streaming async generator if stream=True, dict if stream=False
+            
+        Note:
+            For vision capabilities, use models like:
+            - llava:7b (general vision)
+            - llava:13b (better accuracy)
+            - bakllava:7b (better at OCR)
+            - llava-llama3:latest (best performance)
         """
         if model is None:
             model = self.primary_model
@@ -244,6 +253,13 @@ class OllamaService:
                 "temperature": temperature
             }
         }
+        
+        # Add images if provided (for multimodal)
+        if images and len(images) > 0:
+            # Attach images to the last user message
+            if messages and messages[-1].get("role") == "user":
+                messages[-1]["images"] = images
+                logger.info(f"🖼️ Sending {len(images)} image(s) to vision model")
         
         try:
             if stream:

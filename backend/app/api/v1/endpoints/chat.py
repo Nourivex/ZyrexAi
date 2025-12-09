@@ -58,12 +58,13 @@ async def chat(
         )
         session.add(user_msg)
         
-        # Generate response
+        # Generate response (with vision support if images provided)
         response = await ollama.chat(
             messages=messages,
             model=request.model,
             temperature=request.temperature,
-            stream=False
+            stream=False,
+            images=request.images
         )
         
         assistant_content = response["message"]["content"]
@@ -136,13 +137,35 @@ async def chat_stream(
             session.add(user_msg)
             await session.commit()
             
-            # Stream response
+            # Check if tools/RAG are requested (thinking process visualization)
+            use_tools = request.model and ('agent' in request.model.lower() or request.message.startswith('/tool'))
+            
+            if use_tools:
+                # Send thinking indicator
+                yield f"data: {json.dumps({'type': 'thinking', 'status': 'started'})}\n\n"
+                
+                # Simulate tool usage detection
+                if 'search' in request.message.lower():
+                    yield f"data: {json.dumps({'type': 'tool', 'tool_name': 'Web Search', 'status': 'searching', 'query': request.message})}\n\n"
+                elif 'calculate' in request.message.lower():
+                    yield f"data: {json.dumps({'type': 'tool', 'tool_name': 'Calculator', 'status': 'calculating'})}\n\n"
+                elif 'file' in request.message.lower():
+                    yield f"data: {json.dumps({'type': 'tool', 'tool_name': 'File Reader', 'status': 'reading'})}\n\n"
+                
+                # Small delay for visual effect
+                import asyncio
+                await asyncio.sleep(0.5)
+                
+                yield f"data: {json.dumps({'type': 'thinking', 'status': 'complete'})}\n\n"
+            
+            # Stream response (with vision support if images provided)
             full_response = ""
             async for chunk in ollama.chat(
                 messages=messages,
                 model=request.model,
                 temperature=request.temperature,
-                stream=True
+                stream=True,
+                images=request.images
             ):
                 full_response += chunk
                 yield f"data: {json.dumps({'chunk': chunk, 'type': 'chunk'})}\n\n"

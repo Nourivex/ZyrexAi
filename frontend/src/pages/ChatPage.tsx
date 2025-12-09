@@ -9,7 +9,7 @@ interface ChatPageProps {
   isLoading: boolean;
   error: string | null;
   selectedCharacter: Character | null;
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string, images?: string[]) => void;
   onStopStreaming: () => void;
 }
 

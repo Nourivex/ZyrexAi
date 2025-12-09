@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Settings, Moon, Sun, Sparkles, Database, Key, Info, Save, CheckCircle2 } from 'lucide-react';
+import { X, Settings, Moon, Sun, Sparkles, Database, Key, Info, Save, CheckCircle2, BookOpen } from 'lucide-react';
+import { DocumentUpload } from './DocumentUpload';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -10,7 +11,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const [activeTab, setActiveTab] = useState<'general' | 'api' | 'about'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'api' | 'knowledge' | 'about'>('general');
   
   // Theme state with localStorage
   const [darkMode, setDarkMode] = useState(() => {
@@ -80,6 +81,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const tabs = [
     { id: 'general' as const, label: 'General', icon: Settings },
     { id: 'api' as const, label: 'API', icon: Key },
+    { id: 'knowledge' as const, label: 'Knowledge', icon: BookOpen },
     { id: 'about' as const, label: 'About', icon: Info },
   ];
 
@@ -335,6 +337,33 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         )}
                       </button>
                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'knowledge' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-4">Knowledge Base</h3>
+                  <p className="text-sm text-white/60 mb-6">
+                    Upload documents to enhance ZyrexAi's knowledge. Files are automatically processed and added to the RAG system.
+                  </p>
+
+                  <DocumentUpload 
+                    onUploadComplete={() => {
+                      console.log('📚 Knowledge base updated');
+                    }}
+                  />
+
+                  <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                    <h4 className="text-sm font-semibold text-blue-400 mb-2">💡 Pro Tips</h4>
+                    <ul className="text-xs text-blue-300/80 space-y-1">
+                      <li>• Supported formats: PDF, TXT</li>
+                      <li>• Documents are chunked and vectorized automatically</li>
+                      <li>• Enable RAG in chat to use knowledge base</li>
+                      <li>• Best for: Documentation, research papers, notes</li>
+                    </ul>
                   </div>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 """API v1 Router - Aggregates all endpoint routers"""
 from fastapi import APIRouter
-from app.api.v1.endpoints import health, chat, roleplay, agents, automations, tools, config
+from app.api.v1.endpoints import health, chat, roleplay, agents, automations, tools, config, documents
 
 api_router = APIRouter()
 
@@ -12,6 +12,7 @@ api_router.include_router(agents.router, prefix="/agents", tags=["agents"])
 api_router.include_router(automations.router, prefix="/automations", tags=["automations"])
 api_router.include_router(tools.router, prefix="/tools", tags=["tools"])
 api_router.include_router(config.router, prefix="/config", tags=["config"])
+api_router.include_router(documents.router, tags=["documents"])
 
 # Note: FastAPI handles trailing slash redirects automatically
 # For GET requests without trailing slash, it will redirect to with trailing slash
